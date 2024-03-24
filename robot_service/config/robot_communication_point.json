@@ -1,0 +1,13 @@
+{
+  "start": {"point": 1104,"name": "板位启动"},
+  "clamp_open": {"point": 1105,"name": "夹爪打开"},
+  "clamp_close": {"point": 1106,"name": "夹爪关闭"},
+  "back_origin": {"point": 1107,"name": "返回原点"},
+  "start_complete": {"point": 592,"name": "板位启动完成"},
+  "clamp_open_complete": {"point": 593,"name": "夹爪打开完成"},
+  "clamp_close_complete": {"point": 594,"name": "夹爪关闭完成"},
+  "clamp_is_none": {"point": 595,"name": "夹爪夹空"},
+  "clamp_is_lose": {"point": 596,"name": "夹爪加持物品掉落"},
+  "idle": {"point": 597,"name": "空闲中"},
+  "running": {"point": 598,"name": "运行中"}
+}
