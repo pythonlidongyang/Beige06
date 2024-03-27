@@ -9,5 +9,6 @@
   "clamp_is_none": {"point": 595,"name": "夹爪夹空"},
   "clamp_is_lose": {"point": 596,"name": "夹爪加持物品掉落"},
   "idle": {"point": 597,"name": "空闲中"},
-  "running": {"point": 598,"name": "运行中"}
+  "running": {"point": 598,"name": "运行中"},
+  "zero": {"point": 440,"name": "机器人在原点"}
 }

@@ -1,0 +1,228 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>js应用---下拉框联动</title></head>
+<body>
+<span>请选择机器人站号</span>
+<select id="sltProvince" onchange="loadCity()">
+</select>
+<br>
+<span>请选择设备</span>
+<select id="sltCity">
+</select>
+<br>
+<span>请选择取或者放</span>
+<select id="getPut">
+    <option value="get">取</option>
+    <option value="put">放</option>
+</select>
+<br>
+<span>请选择身体和盖子</span>
+<select id="coverBody">
+    <option value="cover">盖子</option>
+    <option value="body">身体</option>
+</select>
+<br>
+<span>请选择位置编号</span>
+<select id="num">
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+</select>
+<br>
+<button id="save" onclick="saveParams()">保存参数</button>
+<button id="start" onclick="start()">启动</button>
+<button id="origin" onclick="origin()">回原点</button>
+<br>
+<select id="calm">
+    <option value="clamp_open">open</option>
+    <option value="clamp_close">close</option>
+</select>
+<button id="calm1" onclick="calm()">夹爪</button>
+<br>
+<button id="fuwei" onclick="fuwei()">信号复位</button>
+
+</body>
+</html>
+<script>
+    //定义存放所有省份数据的数组
+    var provinceList = ["==请选择==", "Robot01", "Robot02", "Robot03"];
+
+    //定义存放所有市数据的二维数组
+    var cityList = [
+        ["==请选择=="],
+        ["xrPs_01", "xrPump", "xrTier", "tcEvo", "Z02", "Z03"],
+        ["xrPs_02", "xr96Ls_01", "xrIncubator_01", "xrIncubator_02", "xrIncubator_03", "xrPs_Pipette01", "xrPs_FromZ01"],
+        ["xrPs_03", "xr96Ls_02", "xrIncubator_04", "xrIncubator_05", "xrIncubator_06", "xrPs_Pipette02", "xrPs_FromZ01"],
+    ];
+
+
+    //定义加载省份下拉框的方法loadProvince
+    function loadProvince() {
+        var sltProvince = document.getElementById("sltProvince");
+        sltProvince.length = provinceList.length;
+        for (var i = 0; i < provinceList.length; i++) {
+            sltProvince.options[i].text = provinceList[i];
+        }
+    }
+
+    //定义根据当前选择的省份，加载对应市下拉框数据的方法
+    function loadCity() {
+        //1.获得所选择的省份选项序号
+        var idx = document.getElementById("sltProvince").selectedIndex;
+
+        //2.从cityList数组中，取idx行所在的数据
+        var cityData = cityList[idx];
+
+        //3.遍历cityData中的数据，载入到市下拉框sltCity中
+        var sltCity = document.getElementById("sltCity");
+        sltCity.length = cityData.length;
+        for (var i = 0; i < cityData.length; i++) {
+            sltCity.options[i].text = cityData[i];
+        }
+    }
+
+    function saveParams() {
+        var sltProvince = document.querySelector("#sltProvince")
+        var sltCity = document.querySelector("#sltCity")
+        var getPut = document.querySelector("#getPut")
+        var coverBody = document.querySelector("#coverBody")
+        var numNode = document.querySelector("#num")
+        var robot_num = sltProvince.value
+        var device = sltCity.value
+        var get_put = getPut.value
+        var grab_pos = coverBody.value
+        var num_pos = numNode.value
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                robot_num,
+                device,
+                get_put,
+                grab_pos,
+                num_pos,
+            })
+        };
+
+        fetch('http://localhost:6688/save_param', requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(data => {
+                // 处理获取到的数据
+                console.log(data);
+            })
+            .catch(error => {
+                // 处理错误
+                console.error('Error:', error);
+            });
+    }
+
+    function start() {
+        const requestOptions = {
+            method: 'GET',
+        };
+
+        fetch('http://localhost:6688/start_singe_step', requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(data => {
+                // 处理获取到的数据
+                console.log(data);
+            })
+            .catch(error => {
+                // 处理错误
+                console.error('Error:', error);
+            });
+    }
+    function fuwei() {
+        const requestOptions = {
+            method: 'GET',
+        };
+
+        fetch('http://localhost:6688/fuwei', requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(data => {
+                // 处理获取到的数据
+                console.log(data);
+            })
+            .catch(error => {
+                // 处理错误
+                console.error('Error:', error);
+            });
+    }
+
+    function calm() {
+        var stateww = document.querySelector("#calm")
+        var status = stateww.value
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                status,
+            })
+        };
+
+        fetch('http://localhost:6688/clamp_action', requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(data => {
+                // 处理获取到的数据
+                console.log(data);
+            })
+            .catch(error => {
+                // 处理错误
+                console.error('Error:', error);
+            });
+    }
+
+    function origin() {
+        const requestOptions = {
+            method: 'GET',
+        };
+
+        fetch('http://localhost:6688/back_origin', requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(data => {
+                // 处理获取到的数据
+                console.log(data);
+            })
+            .catch(error => {
+                // 处理错误
+                console.error('Error:', error);
+            });
+    }
+
+    //执行加载省份下拉框的方法
+    loadProvince();
+
+</script>

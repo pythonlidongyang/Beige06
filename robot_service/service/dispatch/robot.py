@@ -1,4 +1,5 @@
 import json
+import time
 
 from robot_service.service.init.init_robot import init_robot
 
@@ -50,7 +51,7 @@ def choice_get_put(get_put):
 
 
 def load_config():
-    with open("robot_service/config/robot_communication_point.json") as f:
+    with open("robot_service/config/robot_communication_point.json", encoding='utf-8') as f:
         point_config = json.load(f)
     return point_config
 
@@ -104,6 +105,9 @@ def robot(device_name: str,
         #     robot_id.write_coil(choice_get_put("put"), robot_signal)  # 选择取板位\放板位
 
 
+robot_objs = init_robot()
+
+
 class RobotActionService:
     def __init__(self):
         # self.robot = robot_num
@@ -113,19 +117,30 @@ class RobotActionService:
         # self.num_pos = num_pos
         self.robot_obj = None
         self.sigal = True
+        self.points = None
+        self.callback_point = None
+
+    def sigal_reset(self, point):
+        self.robot_obj.write_coil(point, False)
+        print("信号复位" + str(point))
 
     def save_params(self, robot_num, device, get_put, grab_pos, num_pos):
+
         self.robot_obj = init_robot().get(robot_num)
         """组合任务，四个点位为一个任务【设备号，取/放，夹爪位置，夹持位置】"""
-        points = [choice_device(device)[0], choice_get_put(get_put)[0],
-                  choice_grab_pos(grab_pos)[0], choice_num_pos(num_pos)[0]]
-        callback_point = [choice_device(device)[1], choice_get_put(get_put)[1],
-                          choice_grab_pos(grab_pos)[1], choice_num_pos(num_pos)[1]]
+        self.points = [choice_device(device)[0], choice_get_put(get_put)[0],
+                       choice_grab_pos(grab_pos)[0], choice_num_pos(num_pos)[0]]
+        self.callback_point = [choice_device(device)[1], choice_get_put(get_put)[1],
+                               choice_grab_pos(grab_pos)[1], choice_num_pos(num_pos)[1]]
+        print('机器人' + robot_num + "设备" + device + "取放" + get_put + "瓶子" + grab_pos + "位置" + num_pos)
+        print(self.points)
+        print(self.callback_point)
         while True:
-            callback_sigal = [self.robot_obj.read_coils(i) for i in callback_point]
+            callback_sigal = [self.robot_obj.read_coils(i) for i in self.callback_point]
             if callback_sigal != [True, True, True, True]:
-                for point in points:
+                for point in self.points:
                     self.robot_obj.write_coil(point, self.sigal)
+                    time.sleep(0.5)
                 print("四组点位写入成功")
             else:
                 break
@@ -133,16 +148,42 @@ class RobotActionService:
     def start_singe_step(self):
         """启动单步调试"""
         self.robot_obj.write_coil(load_config()["start"]["point"], self.sigal)
+        while True:
+            # if self.robot_obj.read_coils(load_config()["idle"]["point"]):
+            if self.robot_obj.read_coils(load_config()["start_complete"]["point"]):
+                self.sigal_reset(load_config()["start"]["point"])
+                for i in self.points:
+                    self.sigal_reset(i)
+                break
 
     def clamp_action(self, status):
         """夹爪操作，控制夹爪打开关闭"""
         self.robot_obj.write_coil(load_config()[status]["point"], self.sigal)
+        while True:
+            if self.robot_obj.read_coils(load_config()["clamp_open_complete"]["point"]):
+                self.sigal_reset(load_config()["clamp_open"]["point"])
+                self.sigal_reset(load_config()[status]["point"])
+                break
+            if self.robot_obj.read_coils(load_config()["clamp_close_complete"]["point"]):
+                self.sigal_reset(load_config()["clamp_close"]["point"])
+                self.sigal_reset(load_config()[status]["point"])
+                break
 
     def back_origin(self):
         """回原点"""
         self.robot_obj.write_coil(load_config()["back_origin"]["point"], self.sigal)
+        while True:
+            if self.robot_obj.read_coils(load_config()["zero"]["point"]):
+                self.sigal_reset(load_config()["back_origin"]["point"])
+                break
+
+    def fuwei(self):
+        """所有原点复位"""
+        for i in range(1040, 1110):
+            self.sigal_reset(i)
+            time.sleep(0.1)
 
 
-RobotActionService = RobotActionService()
+robot_action_service = RobotActionService()
 
 # robot(device_name="Robot03", from_dev="xrPs_03", )
